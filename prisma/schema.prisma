@@ -1,13 +1,49 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Warga {
+  id        String      @id @default(uuid())
+  nik       String      @unique
+  nama      String
+  noHp      String
+  password  String
+  pengajuan Pengajuan[]
+  createdAt DateTime    @default(now())
+}
+
+model Pengajuan {
+  id          String    @id @default(uuid())
+  noPengajuan String    @unique
+  jenisSurat  String
+  keperluan   String?
+  status      Status    @default(DITERIMA)
+  dokumen     String[]
+  wargaId     String
+  warga       Warga     @relation(fields: [wargaId], references: [id])
+  riwayat     Riwayat[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Riwayat {
+  id          String    @id @default(uuid())
+  status      Status
+  catatan     String?
+  pengajuanId String
+  pengajuan   Pengajuan @relation(fields: [pengajuanId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+enum Status {
+  DITERIMA
+  VERIFIKASI
+  TTD_KEPDES
+  SELESAI
 }
