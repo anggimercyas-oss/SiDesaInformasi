@@ -5,16 +5,19 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+   directUrl = env("DIRECT_URL")
 }
 
 model Warga {
-  id        String      @id @default(uuid())
-  nik       String      @unique
-  nama      String
-  noHp      String
-  password  String
-  pengajuan Pengajuan[]
-  createdAt DateTime    @default(now())
+  id          String      @id @default(uuid())
+  nik         String      @unique
+  nama        String
+  noHp        String
+  tglLahir    DateTime?
+  password    String
+  role        Role        @default(USER)
+  pengajuan   Pengajuan[]
+  createdAt   DateTime    @default(now())
 }
 
 model Pengajuan {
@@ -45,4 +48,9 @@ enum Status {
   VERIFIKASI
   TTD_KEPDES
   SELESAI
+}
+
+enum Role {
+  USER
+  ADMIN
 }

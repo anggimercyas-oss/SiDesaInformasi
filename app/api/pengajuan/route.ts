@@ -1,60 +1,74 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { kirimWhatsApp } from "@/lib/whatsapp"
+import { auth } from "@/lib/auth"
 
-// Generate nomor pengajuan unik: DSM-2026-XXXX
-function generateNomor() {
-  const tahun = new Date().getFullYear()
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
-  return `DSM-${tahun}-${random}`
+function generateNoPengajuan(kode: string, urutan: number) {
+  const now = new Date()
+  const bulanRomawi = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"]
+  const bulan = bulanRomawi[now.getMonth()]
+  const tahun = now.getFullYear()
+  const nomor = String(urutan).padStart(3, "0")
+  return `${kode}/${nomor}/KDG/${bulan}/${tahun}`
+}
+
+const KODE_SURAT: Record<string, string> = {
+  "Surat Keterangan Domisili": "09",
+  "Surat Keterangan Tidak Mampu": "09",
+  "Surat Keterangan Kelahiran": "09",
+  "Surat Keterangan Usaha": "09",
+  "Surat Keterangan Kematian": "09",
+  "Surat Pengantar KTP": "15",
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json()
-    const { jenisSurat, nama, nik, noHp, alamat, keperluan } = body
+    const { jenisSurat, keperluan, dataLengkap, dokumen } = body
 
-    // Validasi data wajib
-    if (!jenisSurat || !nama || !nik || !noHp) {
-      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 })
+    if (!jenisSurat) {
+      return NextResponse.json({ error: "Jenis surat wajib diisi" }, { status: 400 })
     }
 
-    // Cari atau buat akun warga
-    let warga = await prisma.warga.findUnique({ where: { nik } })
-    if (!warga) {
-      warga = await prisma.warga.create({
-        data: { nik, nama, noHp, password: nik }, // password sementara = NIK
-      })
-    }
+    const kode = KODE_SURAT[jenisSurat] || "09"
 
-    // Simpan pengajuan ke database
-    const noPengajuan = generateNomor()
-    await prisma.pengajuan.create({
+    // Hitung nomor urut berdasarkan kode surat
+    const jumlahSurat = await prisma.pengajuan.count({
+      where: {
+        noPengajuan: { startsWith: kode }
+      }
+    })
+    const urutan = jumlahSurat + 1
+    const noPengajuan = generateNoPengajuan(kode, urutan)
+
+    const pengajuan = await prisma.pengajuan.create({
       data: {
         noPengajuan,
         jenisSurat,
-        keperluan,
-        wargaId: warga.id,
+        keperluan: keperluan || "",
+        status: "DITERIMA",
+        dokumen: dokumen || [],
+        wargaId: (session.user as any).id,
         riwayat: {
-          create: { status: "DITERIMA", catatan: "Pengajuan berhasil diterima" }
+          create: {
+            status: "DITERIMA",
+            catatan: "Pengajuan berhasil diterima oleh sistem",
+          }
         }
       }
     })
 
-    // Kirim notifikasi WhatsApp otomatis
-    await kirimWhatsApp(noHp,
-      `✅ *Pengajuan Surat Berhasil Diterima!*\n\n` +
-      `Halo ${nama},\n` +
-      `No. Pengajuan: *${noPengajuan}*\n` +
-      `Jenis Surat: ${jenisSurat}\n` +
-      `Estimasi selesai: 2 hari kerja\n\n` +
-      `Pantau status di: ${process.env.NEXT_PUBLIC_APP_URL}/tracking\n\n` +
-      `_SiDesa — Sistem Informasi Desa_`
-    )
-
-    return NextResponse.json({ success: true, noPengajuan })
+    return NextResponse.json({
+      success: true,
+      noPengajuan: pengajuan.noPengajuan,
+      id: pengajuan.id
+    })
   } catch (err) {
-    console.error(err)
+    console.error("PENGAJUAN ERROR:", err)
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
