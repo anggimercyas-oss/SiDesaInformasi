@@ -1,99 +1,141 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 
-const NOTIF_DATA = [
-  {
-    id: 1, tipe: "success", icon: "✅",
-    judul: "Surat Domisili Selesai!",
-    isi: "No. DSM-2026-0039 sudah selesai dan siap diambil di kantor desa.",
-    waktu: "Hari ini, 08.30 WIB", dibaca: false,
-  },
-  {
-    id: 2, tipe: "warning", icon: "⏳",
-    judul: "Pengajuan Sedang Diproses",
-    isi: "Surat Pengantar KTP (DSM-2026-0042) sedang ditinjau oleh petugas.",
-    waktu: "Kemarin, 14.15 WIB", dibaca: false,
-  },
-  {
-    id: 3, tipe: "info", icon: "📩",
-    judul: "Pengajuan Diterima",
-    isi: "Pengajuan Surat Keterangan Usaha Anda berhasil diterima. No: DSM-2026-0043.",
-    waktu: "2 Mei 2026, 09.05 WIB", dibaca: false,
-  },
-  {
-    id: 4, tipe: "info", icon: "📢",
-    judul: "Info: Jam Pelayanan",
-    isi: "Kantor desa tutup pada 1 Mei 2026 (Hari Buruh). Layanan online tetap aktif.",
-    waktu: "30 Apr 2026", dibaca: true,
-  },
-]
+const STATUS_LABEL: Record<string, string> = {
+  DITERIMA:   "Pengajuan Diterima",
+  VERIFIKASI: "Verifikasi Dokumen",
+  TTD_KEPDES: "Tanda Tangan Kepala Desa",
+  SELESAI:    "Surat Siap Diunduh",
+}
 
-const WARNA: Record<string, string> = {
-  success: "bg-hijau-muda",
-  warning: "bg-kuning-muda",
-  info: "bg-blue-50",
+const STATUS_COLOR: Record<string, string> = {
+  DITERIMA:   "bg-blue-50 text-blue-700",
+  VERIFIKASI: "bg-yellow-50 text-yellow-700",
+  TTD_KEPDES: "bg-purple-50 text-purple-700",
+  SELESAI:    "bg-hijau-muda text-hijau-tua",
+}
+
+const STATUS_ICON: Record<string, string> = {
+  DITERIMA:   "📋",
+  VERIFIKASI: "🔍",
+  TTD_KEPDES: "✍️",
+  SELESAI:    "✅",
 }
 
 export default function Notifikasi() {
-  const [notifs, setNotifs] = useState(NOTIF_DATA)
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const tandaiSemua = () => {
-    setNotifs(notifs.map(n => ({ ...n, dibaca: true })))
+  useEffect(() => {
+    fetch("/api/notifikasi")
+      .then(res => res.json())
+      .then(d => {
+        setData(Array.isArray(d) ? d : [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <div className="space-y-3">
+          {[1,2,3].map(i => (
+            <div key={i} className="card animate-pulse">
+              <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-100 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
-  const belumDibaca = notifs.filter(n => !n.dibaca).length
-
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6">
+    <div className="max-w-2xl mx-auto px-6 py-6 animate-fade-in">
+      <h1 className="text-lg font-semibold mb-1">Notifikasi</h1>
+      <p className="text-xs text-gray-400 mb-5">Riwayat semua pengajuan surat Anda</p>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-lg font-semibold">Notifikasi</h1>
-          {belumDibaca > 0 && (
-            <p className="text-xs text-gray-400 mt-0.5">{belumDibaca} belum dibaca</p>
-          )}
+      {data.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-5xl mb-3">🔔</div>
+          <p className="text-sm text-gray-400">Belum ada pengajuan surat</p>
+          <p className="text-xs text-gray-300 mt-1 mb-5">Ajukan surat pertama Anda sekarang</p>
+          <Link href="/ajukan" className="btn-primary text-sm active:scale-95">
+            Ajukan Surat Sekarang
+          </Link>
         </div>
-        {belumDibaca > 0 && (
-          <button onClick={tandaiSemua} className="btn-secondary text-xs px-3 py-1.5">
-            Tandai semua dibaca
-          </button>
-        )}
-      </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {data.map(p => {
+            const fileUrl = p.dokumen?.length > 0 ? p.dokumen[p.dokumen.length - 1] : null
+            const latestRiwayat = p.riwayat?.[0]
+            return (
+              <div key={p.id} className="card hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 bg-hijau-muda rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                      {STATUS_ICON[p.status]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{p.jenisSurat}</p>
+                      <p className="text-xs text-gray-400">No. {p.noPengajuan}</p>
+                    </div>
+                  </div>
+                  <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${STATUS_COLOR[p.status]}`}>
+                    {STATUS_LABEL[p.status]}
+                  </span>
+                </div>
 
-      {/* List Notifikasi */}
-      <div className="flex flex-col gap-2.5 mb-6">
-        {notifs.map(n => (
-          <div key={n.id}
-            onClick={() => setNotifs(notifs.map(x => x.id === n.id ? { ...x, dibaca: true } : x))}
-            className={`card flex gap-3 cursor-pointer transition-all
-              ${!n.dibaca ? "border-l-4 border-l-hijau bg-hijau-muda/30" : "opacity-70"}`}>
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-base flex-shrink-0 ${WARNA[n.tipe]}`}>
-              {n.icon}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[13px] font-semibold">{n.judul}</p>
-                {!n.dibaca && <span className="w-2 h-2 bg-hijau rounded-full flex-shrink-0 mt-1.5"></span>}
+                {/* Timeline mini */}
+                <div className="flex items-center gap-1 mb-3">
+                  {["DITERIMA","VERIFIKASI","TTD_KEPDES","SELESAI"].map((s, i) => {
+                    const steps = ["DITERIMA","VERIFIKASI","TTD_KEPDES","SELESAI"]
+                    const currentIdx = steps.indexOf(p.status)
+                    const done = i <= currentIdx
+                    return (
+                      <div key={s} className="flex items-center gap-1 flex-1">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${done ? "bg-hijau" : "bg-gray-200"}`} />
+                        {i < 3 && <div className={`h-0.5 flex-1 ${done && i < currentIdx ? "bg-hijau" : "bg-gray-200"}`} />}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Info terakhir */}
+                {latestRiwayat && (
+                  <p className="text-xs text-gray-400 mb-3">
+                    🕐 Update terakhir: {new Date(latestRiwayat.createdAt).toLocaleString("id-ID")}
+                    {latestRiwayat.catatan && ` — ${latestRiwayat.catatan}`}
+                  </p>
+                )}
+
+                <p className="text-xs text-gray-300 mb-3">
+                  Diajukan: {new Date(p.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+
+                {/* Tombol aksi */}
+                <div className="flex gap-2">
+                  <Link
+                    href={`/tracking?no=${p.noPengajuan}`}
+                    className="flex-1 text-center text-xs py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors active:scale-95">
+                    🔍 Lihat Detail
+                  </Link>
+
+                  {p.status === "SELESAI" && fileUrl && (
+                    
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-center text-xs py-2 rounded-lg bg-hijau text-white hover:opacity-90 transition-opacity active:scale-95">
+                      ⬇️ Unduh Surat
+                    </a>
+                  ){"}"}
+                </div>
               </div>
-              <p className="text-[12px] text-gray-400 mt-0.5 leading-relaxed">{n.isi}</p>
-              <p className="text-[11px] text-gray-300 mt-1">{n.waktu}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Hubungkan WA */}
-      <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 text-center">
-        <p className="text-sm font-semibold mb-1">Aktifkan Notifikasi WhatsApp</p>
-        <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-          Dapatkan notifikasi otomatis langsung ke WhatsApp setiap ada update pengajuan.
-        </p>
-        <button className="btn-primary text-sm" style={{ background: "#25D366" }}>
-          Hubungkan WhatsApp
-        </button>
-      </div>
-
-    </div>
-  )
-}
+            )
+          })}
+        </div>
+      )}
+    </

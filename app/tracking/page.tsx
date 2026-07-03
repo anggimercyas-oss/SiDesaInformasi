@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 
 const STATUS_STEPS = ["DITERIMA", "VERIFIKASI", "TTD_KEPDES", "SELESAI"]
 const STATUS_LABEL: Record<string, string> = {
@@ -14,7 +15,14 @@ export default function Tracking() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
+const searchParams = useSearchParams()
+useEffect(() => {
+  const no = searchParams.get("no")
+  if (no) {
+    setNomor(no)
+    setTimeout(() => cariPengajuan(), 100)
+  }
+}, [])
   const cariPengajuan = async () => {
     if (!nomor.trim()) return
     setLoading(true)
