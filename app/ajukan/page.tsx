@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
@@ -19,6 +19,26 @@ export default function AjukanSurat() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState("")
+
+// Fetch data warga yang login
+useEffect(() => {
+  fetch("/api/profile")
+    .then(res => res.json())
+    .then(data => {
+      if (data.nama) {
+        setForm(f => ({
+          ...f,
+          nama: data.nama || "",
+          nik: data.nik || "",
+          noHp: data.noHp || "",
+          tanggalLahir: data.tglLahir
+            ? new Date(data.tglLahir).toISOString().split("T")[0]
+            : "",
+        }))
+      }
+    })
+    .catch(() => {})
+}, [])
 
 const [files, setFiles] = useState<{
   kk: File | null
@@ -286,7 +306,46 @@ const handleSubmit = async () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>Nama Lengkap *</label>
-                <input className={inputClass} placeholder="Sesuai KTP" value={form.nama} onChange={e => set("nama", e.target.value)} />
+                {/* Nama & NIK */}
+<div className="grid grid-cols-2 gap-3">
+  <div>
+    <label className={labelClass}>Nama Lengkap *</label>
+    <input
+      className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
+      value={form.nama}
+      readOnly
+    />
+  </div>
+  <div>
+    <label className={labelClass}>NIK *</label>
+    <input
+      className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
+      maxLength={16}
+      value={form.nik}
+      readOnly
+    />
+  </div>
+</div>
+
+<div className="grid grid-cols-2 gap-3">
+  <div>
+    <label className={labelClass}>No. WhatsApp *</label>
+    <input
+      className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
+      value={form.noHp}
+      readOnly
+    />
+  </div>
+  <div>
+    <label className={labelClass}>Tanggal Lahir *</label>
+    <input
+      type="date"
+      className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
+      value={form.tanggalLahir}
+      readOnly
+    />
+  </div>
+</div>
               </div>
               <div>
                 <label className={labelClass}>NIK *</label>
