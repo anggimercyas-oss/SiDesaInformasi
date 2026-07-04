@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect} from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
 const STATUS_STEPS = ["DITERIMA", "VERIFIKASI", "TTD_KEPDES", "SELESAI"]
@@ -10,7 +10,7 @@ const STATUS_LABEL: Record<string, string> = {
   SELESAI:    "Surat Siap Diunduh",
 }
 
-export default function Tracking() {
+function TrackingContent() {
   const [nomor, setNomor] = useState("")
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -195,5 +195,12 @@ useEffect(() => {
         </div>
       )}
     </div>
+  )
+}
+export default function Tracking() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-6 py-10 text-center"><p className="text-sm text-gray-400">Memuat...</p></div>}>
+      <TrackingContent />
+    </Suspense>
   )
 }
