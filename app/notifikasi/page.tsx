@@ -88,7 +88,6 @@ export default function Notifikasi() {
                   </span>
                 </div>
 
-                {/* Timeline mini */}
                 <div className="flex items-center gap-1 mb-3">
                   {["DITERIMA","VERIFIKASI","TTD_KEPDES","SELESAI"].map((s, i) => {
                     const steps = ["DITERIMA","VERIFIKASI","TTD_KEPDES","SELESAI"]
@@ -103,7 +102,6 @@ export default function Notifikasi() {
                   })}
                 </div>
 
-                {/* Info terakhir */}
                 {latestRiwayat && (
                   <p className="text-xs text-gray-400 mb-3">
                     🕐 Update terakhir: {new Date(latestRiwayat.createdAt).toLocaleString("id-ID")}
@@ -112,17 +110,17 @@ export default function Notifikasi() {
                 )}
 
                 <p className="text-xs text-gray-300 mb-3">
-                  Diajukan: {new Date(p.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                  Diajukan: {new Date(p.createdAt).toLocaleDateString("id-ID", {
+                    day: "numeric", month: "long", year: "numeric"
+                  })}
                 </p>
 
-                {/* Tombol aksi */}
                 <div className="flex gap-2">
                   <Link
                     href={`/tracking?no=${p.noPengajuan}`}
                     className="flex-1 text-center text-xs py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors active:scale-95">
                     🔍 Lihat Detail
                   </Link>
-
                   {p.status === "SELESAI" && fileUrl && (
                     
                       href={fileUrl}
@@ -131,11 +129,13 @@ export default function Notifikasi() {
                       className="flex-1 text-center text-xs py-2 rounded-lg bg-hijau text-white hover:opacity-90 transition-opacity active:scale-95">
                       ⬇️ Unduh Surat
                     </a>
-                  ){"}"}
+                  )}
                 </div>
               </div>
             )
           })}
         </div>
       )}
-    </
+    </div>
+  )
+}
