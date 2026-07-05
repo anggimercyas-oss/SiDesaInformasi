@@ -51,9 +51,9 @@ export default function Login() {
         >
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl mb-3 shadow-lg active:scale-90 transition-transform">
-              🏡
-            </div>
+            <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 shadow-lg active:scale-90 transition-transform">
+              <img src="/logo-web.jpeg" alt="SiDesa" className="w-full h-full object-cover" />
+          </div>
             <h1 className="text-2xl font-bold text-white">SiDesa</h1>
             <p className="text-xs text-white/70 mt-1 text-center">
               Desa Gegempalan, Kec. Cikoneng, Kab. Ciamis

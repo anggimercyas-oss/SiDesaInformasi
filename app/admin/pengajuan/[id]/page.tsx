@@ -21,12 +21,19 @@ export default function DetailPengajuan() {
 
   useEffect(() => {
     fetch(`/api/admin/pengajuan/${params.id}`)
-      .then(res => res.json())
-      .then(d => {
-        setData(d)
-        setLoading(false)
-      })
-  }, [params.id])
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    })
+    .then(d => {
+      setData(d)
+      setLoading(false)
+    })
+    .catch(err => {
+      console.error("Error:", err)
+      setLoading(false)
+    })
+}, [params.id])
 
   const currentIdx = data ? STATUS_STEPS.indexOf(data.status) : -1
   const nextStatus = currentIdx < STATUS_STEPS.length - 1 ? STATUS_STEPS[currentIdx + 1] : null

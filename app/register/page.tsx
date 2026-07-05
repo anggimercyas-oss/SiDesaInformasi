@@ -81,9 +81,9 @@ export default function Register() {
           style={{ background: "rgba(255,255,255,0.12)" }}
         >
           <div className="flex flex-col items-center mb-5">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-lg active:scale-90 transition-transform">
-              🏡
-            </div>
+            <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 shadow-lg active:scale-90 transition-transform">
+              <img src="/logo-web.jpeg" alt="SiDesa" className="w-full h-full object-cover" />
+          </div>
             <h1 className="text-xl font-bold text-white">Daftar Akun SiDesa</h1>
             <p className="text-xs text-white/70 mt-1 text-center">
               Pelayanan administrasi untuk warga Desa Gegempalan

@@ -28,9 +28,11 @@ export default function Navbar() {
     <>
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 px-6 h-[60px] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-hijau rounded-lg flex items-center justify-center text-white text-lg flex-shrink-0">
-            🏡
-          </div>
+          <img
+            src="/logo-web.jpeg"
+            alt="SiDesa Logo"
+            className="w-9 h-9 rounded-lg object-cover flex-shrink-0"
+          />
           <div>
             <p className="text-sm font-semibold leading-tight">SiDesa</p>
             <p className="text-[10px] text-gray-400 leading-tight">

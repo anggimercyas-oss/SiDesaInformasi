@@ -22,7 +22,7 @@ const STATS = [
 
 const PENGUMUMAN = [
   {
-    tgl: "04", bln: "MEI",
+    tgl: "06", bln: "JULI",
     judul: "Jam Operasional Kantor Desa",
     isi: "Kantor desa beroperasi Senin–Jumat pukul 08.00–15.00 WIB. Layanan online tersedia 24 jam.",
   },
@@ -38,7 +38,6 @@ const PENGUMUMAN = [
   },
 ]
 
-// Particle canvas — slow, full-page
 function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -49,16 +48,9 @@ function ParticleCanvas() {
     if (!ctx) return
 
     let animId: number
+    const particles: { x: number; y: number; r: number; vx: number; vy: number; alpha: number }[] = []
 
-    const particles: {
-      x: number; y: number; r: number
-      vx: number; vy: number; alpha: number
-    }[] = []
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight }
     resize()
     window.addEventListener("resize", resize)
 
@@ -69,7 +61,7 @@ function ParticleCanvas() {
         r: Math.random() * 2.2 + 0.4,
         vx: (Math.random() - 0.5) * 0.18,
         vy: -Math.random() * 0.22 - 0.08,
-        alpha: Math.random() * 0.35 + 0.1,
+        alpha: Math.random() * 0.25 + 0.08,
       })
     }
 
@@ -78,7 +70,7 @@ function ParticleCanvas() {
       for (const p of particles) {
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${p.alpha})`
+        ctx.fillStyle = `rgba(29,158,117,${p.alpha})`
         ctx.fill()
         p.x += p.vx
         p.y += p.vy
@@ -90,43 +82,58 @@ function ParticleCanvas() {
     }
     draw()
 
-    return () => {
-      cancelAnimationFrame(animId)
-      window.removeEventListener("resize", resize)
-    }
+    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize) }
   }, [])
 
+  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
+}
+
+function useInView(ref: React.RefObject<HTMLElement | null>) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0.15 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [ref])
+  return visible
+}
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const visible = useInView(ref)
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-0"
-    />
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(20px)",
+        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
   )
 }
 
-// Jiggle link component
-function JiggleLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
+function JiggleLink({ href, children, className, style }: { href: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {  // ⬅️ tambah style di sini
   const [jiggle, setJiggle] = useState(false)
   const router = useRouter()
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setJiggle(true)
-    setTimeout(() => {
-      setJiggle(false)
-      router.push(href)
-    }, 320)
+    setTimeout(() => { setJiggle(false); router.push(href) }, 320)
   }
 
   return (
-    <a
-      href={href}
-      onClick={handleClick}
-      className={`${className ?? ""} inline-block`}
-      style={{
-        animation: jiggle ? "jiggle 0.3s ease" : "none",
-      }}
-    >
+    <a href={href} onClick={handleClick} className={`${className ?? ""} inline-block`}
+      style={{ ...style, animation: jiggle ? "jiggle 0.3s ease" : "none" }}>  {/* ⬅️ gabungin style di sini */}
       {children}
     </a>
   )
@@ -135,22 +142,22 @@ function JiggleLink({ href, children, className }: { href: string; children: Rea
 export default function Beranda() {
   return (
     <>
-      {/* Full-page gradient background */}
+      {/* Background gradient hijau + kuning muda */}
       <div
         className="fixed inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(ellipse at 80% 10%, rgba(250,240,130,0.28) 0%, transparent 55%), " +
-            "radial-gradient(ellipse at 10% 60%, rgba(159,225,203,0.35) 0%, transparent 55%), " +
-            "radial-gradient(ellipse at 60% 90%, rgba(29,158,117,0.18) 0%, transparent 50%), " +
-            "linear-gradient(160deg, #e8f8f2 0%, #f5fdf8 40%, #fafff7 70%, #fffff0 100%)",
+            "radial-gradient(ellipse at 85% 5%, rgba(239,159,39,0.18) 0%, transparent 45%), " +
+            "radial-gradient(ellipse at 15% 15%, rgba(239,159,39,0.10) 0%, transparent 40%), " +
+            "radial-gradient(ellipse at 10% 65%, rgba(159,225,203,0.45) 0%, transparent 55%), " +
+            "radial-gradient(ellipse at 75% 85%, rgba(29,158,117,0.20) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 50% 50%, rgba(225,245,238,0.80) 0%, transparent 70%), " +
+            "linear-gradient(155deg, #edfaf3 0%, #f5fdf8 35%, #fffef5 65%, #fdfff8 100%)",
         }}
       />
 
-      {/* Slow particles — behind everything */}
       <ParticleCanvas />
 
-      {/* Jiggle keyframe */}
       <style>{`
         @keyframes jiggle {
           0%   { transform: rotate(0deg) scale(1); }
@@ -160,81 +167,131 @@ export default function Beranda() {
           80%  { transform: rotate(2deg) scale(1.02); }
           100% { transform: rotate(0deg) scale(1); }
         }
+        @keyframes floatBadge {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+        }
+        .badge-float { animation: floatBadge 3s ease-in-out infinite; }
       `}</style>
 
       <div className="relative z-10">
+
         {/* Hero */}
         <section className="px-6 py-14 text-center border-b border-white/60">
-          <span className="inline-flex items-center gap-1.5 bg-white/60 text-hijau-tua text-xs font-medium px-3.5 py-1.5 rounded-full border border-hijau-border mb-5 backdrop-blur-sm shadow-sm">
-            ✅ Pelayanan 24 Jam Online
-          </span>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3 max-w-md mx-auto leading-snug">
-            Urus Surat Desa Tanpa Harus Antre
-          </h1>
-          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-7 leading-relaxed">
-            Ajukan surat administrasi desa secara online, pantau status, dan terima notifikasi otomatis kapan pun surat Anda selesai.
-          </p>
-          <div className="flex gap-2.5 justify-center flex-wrap">
-            <JiggleLink
-              href="/ajukan"
-              className="px-5 py-2.5 bg-hijau text-white text-sm font-semibold rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
-            >
-              Ajukan Surat Sekarang
-            </JiggleLink>
-            <JiggleLink
-              href="/tracking"
-              className="px-5 py-2.5 bg-white/70 text-gray-700 text-sm font-semibold rounded-xl border border-gray-200 backdrop-blur-sm hover:bg-white active:scale-95 transition-all shadow-sm"
-            >
-              Cek Status Pengajuan
-            </JiggleLink>
-          </div>
+          <FadeIn delay={0}>
+            <span className="badge-float inline-flex items-center gap-1.5 bg-white/70 text-hijau-tua text-xs font-medium px-3.5 py-1.5 rounded-full border border-hijau-border mb-5 backdrop-blur-sm shadow-sm">
+              ✅ Pelayanan 24 Jam Online
+            </span>
+          </FadeIn>
+
+          <FadeIn delay={100}>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3 max-w-md mx-auto leading-snug">
+              Urus Surat Desa{" "}
+              <span style={{
+                background: "linear-gradient(135deg, #1D9E75, #085041)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}>
+                Tanpa Harus Antre
+              </span>
+            </h1>
+          </FadeIn>
+
+          <FadeIn delay={200}>
+            <p className="text-sm text-gray-500 max-w-sm mx-auto mb-7 leading-relaxed">
+              Ajukan surat administrasi desa secara online, pantau status, dan terima notifikasi otomatis kapan pun surat Anda selesai.
+            </p>
+          </FadeIn>
+
+          <FadeIn delay={300}>
+            <div className="flex gap-2.5 justify-center flex-wrap">
+              <JiggleLink
+                href="/ajukan"
+                className="px-5 py-2.5 text-white text-sm font-semibold rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
+                style={{ background: "linear-gradient(135deg, #1D9E75, #085041)" } as React.CSSProperties}
+              >
+                Ajukan Surat Sekarang
+              </JiggleLink>
+              <JiggleLink
+                href="/tracking"
+                className="px-5 py-2.5 bg-white/70 text-gray-700 text-sm font-semibold rounded-xl border border-gray-200 backdrop-blur-sm hover:bg-white active:scale-95 transition-all shadow-sm"
+              >
+                Cek Status Pengajuan
+              </JiggleLink>
+            </div>
+          </FadeIn>
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 divide-x divide-white/60 border-b border-white/60 bg-white/40 backdrop-blur-sm">
-          {STATS.map(s => (
-            <div key={s.label} className="py-4 px-5 text-center">
-              <p className="text-2xl font-bold text-hijau">{s.num}</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        <FadeIn delay={100}>
+          <div className="grid grid-cols-4 divide-x divide-white/60 border-b border-white/60 backdrop-blur-sm"
+            style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.5), rgba(225,245,238,0.6), rgba(250,238,218,0.4), rgba(255,255,255,0.5))" }}>
+            {STATS.map((s, i) => (
+              <div key={s.label} className="py-4 px-5 text-center">
+                <p className="text-2xl font-bold"
+                  style={{ color: i === 1 ? "#EF9F27" : "#1D9E75" }}>
+                  {s.num}
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </FadeIn>
 
-        <div className="max-w-2xl mx-auto px-6 py-6 animate-fade-in">
+        <div className="max-w-2xl mx-auto px-6 py-6">
 
           {/* Layanan */}
-          <h2 className="text-base font-semibold mb-4">Layanan Surat Tersedia</h2>
+          <FadeIn delay={0}>
+            <h2 className="text-base font-semibold mb-4">Layanan Surat Tersedia</h2>
+          </FadeIn>
           <div className="grid grid-cols-2 gap-2.5 mb-8">
-            {LAYANAN.map(l => (
-              <JiggleLink key={l.nama} href="/ajukan"
-                className="card flex items-start gap-2.5 hover:border-hijau hover:bg-white/80 transition-all bg-white/60 backdrop-blur-sm w-full">
-                <div className="w-9 h-9 rounded-lg bg-hijau-muda flex items-center justify-center text-lg flex-shrink-0">
-                  {l.icon}
-                </div>
-                <div>
-                  <p className="text-[13px] font-semibold">{l.nama}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{l.desc}</p>
-                </div>
-              </JiggleLink>
+            {LAYANAN.map((l, i) => (
+              <FadeIn key={l.nama} delay={i * 80}>
+                <JiggleLink href="/ajukan"
+                  className="card flex items-start gap-2.5 hover:border-hijau hover:bg-white/90 transition-all bg-white/60 backdrop-blur-sm w-full h-full">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                    style={{ background: "linear-gradient(135deg, #E1F5EE, #9FE1CB)" }}>
+                    {l.icon}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold">{l.nama}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{l.desc}</p>
+                  </div>
+                </JiggleLink>
+              </FadeIn>
             ))}
           </div>
 
           {/* Pengumuman */}
-          <h2 className="text-base font-semibold mb-4">Pengumuman Desa</h2>
+          <FadeIn delay={0}>
+            <h2 className="text-base font-semibold mb-4">Pengumuman Desa</h2>
+          </FadeIn>
           <div className="flex flex-col gap-3 pb-8">
-            {PENGUMUMAN.map(p => (
-              <div key={p.judul} className="card flex gap-3 items-start bg-white/60 backdrop-blur-sm">
-                <div className="bg-hijau-muda rounded-lg px-2.5 py-1.5 text-center min-w-[44px] flex-shrink-0">
-                  <p className="text-lg font-bold text-hijau leading-none">{p.tgl}</p>
-                  <p className="text-[10px] text-hijau-tua font-medium">{p.bln}</p>
+            {PENGUMUMAN.map((p, i) => (
+              <FadeIn key={p.judul} delay={i * 100}>
+                <div className="card flex gap-3 items-start bg-white/60 backdrop-blur-sm hover:shadow-md transition-shadow">
+                  <div className="rounded-lg px-2.5 py-1.5 text-center min-w-[44px] flex-shrink-0"
+                    style={{ background: "linear-gradient(135deg, #E1F5EE, #9FE1CB)" }}>
+                    <p className="text-lg font-bold text-hijau leading-none">{p.tgl}</p>
+                    <p className="text-[10px] text-hijau-tua font-medium">{p.bln}</p>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold mb-1">{p.judul}</p>
+                    <p className="text-[12px] text-gray-400 leading-relaxed">{p.isi}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[13px] font-semibold mb-1">{p.judul}</p>
-                  <p className="text-[12px] text-gray-400 leading-relaxed">{p.isi}</p>
-                </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
+
+          {/* Footer mini */}
+          <FadeIn delay={200}>
+            <div className="text-center py-4 border-t border-gray-100">
+              <p className="text-[11px] text-gray-300">
+                © 2026 SiDesa — Sistem Informasi Desa Gegempalan, Kec. Cikoneng, Kab. Ciamis
+              </p>
+            </div>
+          </FadeIn>
 
         </div>
       </div>
