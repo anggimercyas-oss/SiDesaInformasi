@@ -17,12 +17,17 @@ export default function DetailPengajuan() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
+  const [fetchError, setFetchError] = useState("")
   const [fileUrl, setFileUrl] = useState("")
 
   useEffect(() => {
-    fetch(`/api/admin/pengajuan/${params.id}`)
+  if (!params.id) return
+  fetch(`/api/admin/pengajuan/${params.id}`, {
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" }
+  })
     .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) throw new Error(`${res.status}`)
       return res.json()
     })
     .then(d => {
@@ -30,7 +35,8 @@ export default function DetailPengajuan() {
       setLoading(false)
     })
     .catch(err => {
-      console.error("Error:", err)
+      console.error("Detail error:", err)
+      setFetchError("Gagal memuat data. Coba refresh halaman.")
       setLoading(false)
     })
 }, [params.id])
@@ -67,8 +73,24 @@ export default function DetailPengajuan() {
   }
 
   if (loading) {
-    return <div className="max-w-2xl mx-auto px-6 py-10 text-center"><p className="text-sm text-gray-400">Memuat...</p></div>
-  }
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-10 text-center">
+      <div className="w-8 h-8 border-2 border-hijau border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+      <p className="text-sm text-gray-400">Memuat data pengajuan...</p>
+    </div>
+  )
+}
+
+if (fetchError) {
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-10 text-center">
+      <p className="text-sm text-red-400 mb-3">⚠️ {fetchError}</p>
+      <button onClick={() => window.location.reload()} className="btn-primary text-sm">
+        Refresh
+      </button>
+    </div>
+  )
+}
 
   if (!data) {
     return <div className="max-w-2xl mx-auto px-6 py-10 text-center"><p className="text-sm text-gray-400">Data tidak ditemukan</p></div>

@@ -5,7 +5,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
 
-  const protectedPaths = ["/ajukan", "/tracking", "/notifikasi"]
+  const protectedPaths = ["/ajukan", "/notifikasi"]
   const adminPaths = ["/admin"]
 
   const isProtected = protectedPaths.some(p => pathname.startsWith(p))
@@ -25,5 +25,5 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ["/ajukan/:path*", "/tracking/:path*", "/notifikasi/:path*", "/admin/:path*"],
+  matcher: ["/ajukan/:path*", "/notifikasi/:path*", "/admin/:path*"],
 }
