@@ -26,13 +26,9 @@ const [files, setFiles] = useState<{
   dtks: File | null
   ktpAyah: File | null
   ktpIbu: File | null
-}>({
-  kk: null,
-  rtRw: null,
-  dtks: null,
-  ktpAyah: null,
-  ktpIbu: null,
-})
+  ktp: File | null
+  fotoUsaha: File | null
+}>({ kk: null, rtRw: null, dtks: null, ktpAyah: null, ktpIbu: null, ktp: null, fotoUsaha: null })
 
   const [form, setForm] = useState<Record<string, string>>({
     jenisSurat: "",
@@ -117,7 +113,7 @@ const handleSubmit = async () => {
     setError("Harap upload Fotokopi KK dan Surat Pengantar RT/RW")
     return
   }
-
+  
   setLoading(true)
   setError("")
 
@@ -628,57 +624,68 @@ const handleSubmit = async () => {
 <div className="border-t border-gray-100 pt-4">
   <p className="text-sm font-semibold text-gray-700 mb-3">📎 Upload Dokumen</p>
 
-  {/* KK — wajib semua surat */}
+  {/* KK — semua surat kecuali Usaha */}
+  {form.jenisSurat !== "Surat Keterangan Usaha" && (
+    <div className="mb-3">
+      <label className={labelClass}>Fotokopi Kartu Keluarga *</label>
+      <div onClick={() => document.getElementById("upload-kk")?.click()}
+        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.kk ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+        <input id="upload-kk" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+          onChange={e => setFiles(f => ({ ...f, kk: e.target.files?.[0] || null }))} />
+        {files.kk ? <p className="text-xs text-hijau-tua font-medium">✅ {files.kk.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
+      </div>
+    </div>
+  )}
+
+  {/* Surat RT/RW — semua surat */}
   <div className="mb-3">
-    <label className={labelClass}>Fotokopi Kartu Keluarga *</label>
-    <div
-      onClick={() => document.getElementById("upload-kk")?.click()}
-      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${
-        files.kk ? "border-hijau bg-hijau-muda/20" : "border-gray-200"
-      }`}>
-      <input
-        id="upload-kk"
-        type="file"
-        accept=".jpg,.jpeg,.png,.pdf"
-        className="hidden"
-        onChange={e => setFiles(f => ({ ...f, kk: e.target.files?.[0] || null }))}
-      />
-      {files.kk ? (
-        <p className="text-xs text-hijau-tua font-medium">✅ {files.kk.name}</p>
-      ) : (
-        <>
-          <p className="text-2xl mb-1">📁</p>
-          <p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p>
-        </>
-      )}
+    <label className={labelClass}>Surat Pengantar RT/RW *</label>
+    <div onClick={() => document.getElementById("upload-rtrw")?.click()}
+      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.rtRw ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+      <input id="upload-rtrw" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+        onChange={e => setFiles(f => ({ ...f, rtRw: e.target.files?.[0] || null }))} />
+      {files.rtRw ? <p className="text-xs text-hijau-tua font-medium">✅ {files.rtRw.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
     </div>
   </div>
 
-  {/* Surat RT/RW — wajib semua surat */}
-  <div className="mb-3">
-    <label className={labelClass}>Surat Pengantar RT/RW *</label>
-    <div
-      onClick={() => document.getElementById("upload-rtrw")?.click()}
-      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${
-        files.rtRw ? "border-hijau bg-hijau-muda/20" : "border-gray-200"
-      }`}>
-      <input
-        id="upload-rtrw"
-        type="file"
-        accept=".jpg,.jpeg,.png,.pdf"
-        className="hidden"
-        onChange={e => setFiles(f => ({ ...f, rtRw: e.target.files?.[0] || null }))}
-      />
-      {files.rtRw ? (
-        <p className="text-xs text-hijau-tua font-medium">✅ {files.rtRw.name}</p>
-      ) : (
-        <>
-          <p className="text-2xl mb-1">📁</p>
-          <p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p>
-        </>
-      )}
+  {/* KTP — Domisili, Kematian, Pengantar KTP */}
+  {(form.jenisSurat === "Surat Keterangan Domisili" ||
+    form.jenisSurat === "Surat Keterangan Kematian" ||
+    form.jenisSurat === "Surat Pengantar KTP") && (
+    <div className="mb-3">
+      <label className={labelClass}>Fotokopi KTP *</label>
+      <div onClick={() => document.getElementById("upload-ktp")?.click()}
+        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.ktp ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+        <input id="upload-ktp" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+          onChange={e => setFiles(f => ({ ...f, ktp: e.target.files?.[0] || null }))} />
+        {files.ktp ? <p className="text-xs text-hijau-tua font-medium">✅ {files.ktp.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
+      </div>
     </div>
-  </div>
+  )}
+
+  {/* Usaha — KTP + Foto Tempat Usaha (tanpa KK) */}
+  {form.jenisSurat === "Surat Keterangan Usaha" && (
+    <>
+      <div className="mb-3">
+        <label className={labelClass}>Fotokopi KTP *</label>
+        <div onClick={() => document.getElementById("upload-ktp-usaha")?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.ktp ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+          <input id="upload-ktp-usaha" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+            onChange={e => setFiles(f => ({ ...f, ktp: e.target.files?.[0] || null }))} />
+          {files.ktp ? <p className="text-xs text-hijau-tua font-medium">✅ {files.ktp.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
+        </div>
+      </div>
+      <div className="mb-3">
+        <label className={labelClass}>Foto Tempat Usaha *</label>
+        <div onClick={() => document.getElementById("upload-foto-usaha")?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.fotoUsaha ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+          <input id="upload-foto-usaha" type="file" accept=".jpg,.jpeg,.png" className="hidden"
+            onChange={e => setFiles(f => ({ ...f, fotoUsaha: e.target.files?.[0] || null }))} />
+          {files.fotoUsaha ? <p className="text-xs text-hijau-tua font-medium">✅ {files.fotoUsaha.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG • Maks 2MB</p></>}
+        </div>
+      </div>
+    </>
+  )}
 
   {/* Screenshot DTKS — khusus SKTM */}
   {form.jenisSurat === "Surat Keterangan Tidak Mampu" && (
@@ -713,51 +720,20 @@ const handleSubmit = async () => {
     <>
       <div className="mb-3">
         <label className={labelClass}>Fotokopi KTP Ayah *</label>
-        <div
-          onClick={() => document.getElementById("upload-ktpayah")?.click()}
-          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${
-            files.ktpAyah ? "border-hijau bg-hijau-muda/20" : "border-gray-200"
-          }`}>
-          <input
-            id="upload-ktpayah"
-            type="file"
-            accept=".jpg,.jpeg,.png,.pdf"
-            className="hidden"
-            onChange={e => setFiles(f => ({ ...f, ktpAyah: e.target.files?.[0] || null }))}
-          />
-          {files.ktpAyah ? (
-            <p className="text-xs text-hijau-tua font-medium">✅ {files.ktpAyah.name}</p>
-          ) : (
-            <>
-              <p className="text-2xl mb-1">📁</p>
-              <p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p>
-            </>
-          )}
+        <div onClick={() => document.getElementById("upload-ktpayah")?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.ktpAyah ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+          <input id="upload-ktpayah" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+            onChange={e => setFiles(f => ({ ...f, ktpAyah: e.target.files?.[0] || null }))} />
+          {files.ktpAyah ? <p className="text-xs text-hijau-tua font-medium">✅ {files.ktpAyah.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
         </div>
       </div>
-
       <div className="mb-3">
         <label className={labelClass}>Fotokopi KTP Ibu *</label>
-        <div
-          onClick={() => document.getElementById("upload-ktpibu")?.click()}
-          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${
-            files.ktpIbu ? "border-hijau bg-hijau-muda/20" : "border-gray-200"
-          }`}>
-          <input
-            id="upload-ktpibu"
-            type="file"
-            accept=".jpg,.jpeg,.png,.pdf"
-            className="hidden"
-            onChange={e => setFiles(f => ({ ...f, ktpIbu: e.target.files?.[0] || null }))}
-          />
-          {files.ktpIbu ? (
-            <p className="text-xs text-hijau-tua font-medium">✅ {files.ktpIbu.name}</p>
-          ) : (
-            <>
-              <p className="text-2xl mb-1">📁</p>
-              <p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p>
-            </>
-          )}
+        <div onClick={() => document.getElementById("upload-ktpibu")?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-hijau hover:bg-hijau-muda/30 ${files.ktpIbu ? "border-hijau bg-hijau-muda/20" : "border-gray-200"}`}>
+          <input id="upload-ktpibu" type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+            onChange={e => setFiles(f => ({ ...f, ktpIbu: e.target.files?.[0] || null }))} />
+          {files.ktpIbu ? <p className="text-xs text-hijau-tua font-medium">✅ {files.ktpIbu.name}</p> : <><p className="text-2xl mb-1">📁</p><p className="text-xs text-gray-400">Klik untuk upload • JPG, PNG, PDF • Maks 2MB</p></>}
         </div>
       </div>
     </>
